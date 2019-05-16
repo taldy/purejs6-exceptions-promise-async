@@ -1,0 +1,260 @@
+<html>
+  <head>
+    <title>Pure.js #6 - async</title>
+    <style>
+      button {
+        display: block;
+      }
+
+      .loader {
+        display: none;
+        border: 3px solid #f3f3f3; /* Light grey */
+        border-top: 3px solid #a0a0a0;
+        border-bottom: 3px solid #a0a0a0;
+        border-left: 3px solid transparent;
+        border-right: 3px solid transparent;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 2s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Pure.js #6. try/catch</h1>
+
+    <h2>01. uncatched error</h2>
+    <div id="container1">
+      <button onclick="showUncatchedError()">
+        Show me 'user is not defined ' error
+      </button>
+    </div>
+    <script>
+      function showUncatchedError() {
+        console.log("Before error");
+        console.log(user);
+        console.log("After error");
+
+        console.log("Sorry, but JS following the error won't work");
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>02. try/catch</h2>
+    <div id="container2">
+      <button onclick="catchError()">Catch 'user is not defined' error</button>
+    </div>
+    <script>
+      function catchError() {
+        try {
+          console.log("Before error"); // -> 'Before error'
+          console.log(user);
+          console.log("After error");
+        } catch (e) {
+          console.log(e); // -> 'ReferenceError: user is not defined'
+        }
+
+        console.log("JS is still works");
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>03. syntax errors</h2>
+    <div id="container3">
+      <button onclick="tryToCatchSyntaxError()">
+        Try to catch syntax error
+      </button>
+    </div>
+    <script>
+      function tryToCatchSyntaxError() {
+        let user;
+
+        try {
+          if (2 > 3) {
+          }
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>04. JSON.parse() error</h2>
+    <div id="container4">
+      <textarea cols="50">{"username":"Vitaliy","age":26}</textarea>
+      <button onclick="catchJsonError()">Catch JSON error</button>
+    </div>
+    <script>
+      function catchJsonError() {
+        let user;
+
+        try {
+          const userData = document.querySelector("#container4 textarea").value;
+          user = JSON.parse(userData);
+        } catch (e) {
+          console.log("e.name", e.name);
+          console.log("e.message", e.message);
+          console.log("e.stack", e.stack);
+        }
+
+        console.log("User: ", user);
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>05. Throw your own errors</h2>
+    <div id="container5">
+      <button onclick="throwError()">throw new Error()</button>
+      <button onclick="throwTypeError()">throw new TypeError()</button>
+      <button onclick="throwRawError()">
+        throw raw error - don't do this, pls
+      </button>
+      <button onclick="catchCustomError()">catch custom errors</button>
+    </div>
+    <script>
+      function throwError() {
+        throw new Error("Some errors occurred");
+      }
+
+      function throwTypeError() {
+        throw new TypeError("Incorrect argument type");
+      }
+
+      function throwRawError() {
+        throw { customError: "smth want wrong" };
+      }
+
+      function catchCustomError() {
+        try {
+          throwTypeError();
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>06. rethrow errors</h2>
+    <div id="container6">
+      <input type="text" value="2" />
+      <button onclick="getUserAge()">get user age</button>
+    </div>
+    <script>
+      function getUser(id) {
+        if (id > 100) {
+          throw new Error("User not found");
+        }
+
+        if (isNaN(id)) {
+          throw new TypeError("Incorrect user id");
+        }
+
+        return { age: Math.round(Math.random() * 80) };
+      }
+
+      function getUserAge() {
+        try {
+          const userId = document.querySelector("#container6 input").value;
+          const user = getUser(userId);
+          console.log("user age:", user.age);
+        } catch (e) {
+          if (e.name === "TypeError") {
+            console.log("Incorrect user id");
+          } else {
+            throw e;
+          }
+        }
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>07. finally</h2>
+    <div id="container7">
+      <div class="loader"></div>
+      <input type="checkbox" class="error-control" /> Error
+      <button onclick="runLongOeration()">run long action with error</button>
+      <button onclick="runWithFinally()">finally for hiding loader</button>
+    </div>
+    <script>
+      function doSmth() {
+        if (document.querySelector(".error-control").checked) {
+          throw new Error("Something went wrong");
+        }
+      }
+
+      function showThrobber() {
+        document.querySelector(".loader").style.display = "block";
+      }
+
+      function hideThrobber() {
+        document.querySelector(".loader").style.display = "none";
+      }
+
+      function runLongOeration() {
+        showThrobber();
+
+        setTimeout(() => {
+          try {
+            doSmth();
+            hideThrobber();
+          } catch (e) {
+            hideThrobber();
+          }
+        }, 2000);
+      }
+
+      function runWithFinally() {
+        showThrobber();
+
+        setTimeout(() => {
+          try {
+            doSmth();
+            hideThrobber();
+          } finally {
+            hideThrobber();
+          }
+        }, 2000);
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>08. window.onerror</h2>
+    <div id="container8">
+      <button onclick="runAction1()">Action 1</button>
+      <button onclick="runAction2()">Action 2</button>
+    </div>
+    <script>
+      function doSmthMore() {
+        throw new Error("Something went wrong");
+      }
+
+      function runAction1() {
+        doSmthMore()
+      }
+
+      function runAction2() {
+        doSmthMore()
+      }
+
+      window.onerror = (message) => {
+        console.log(message);
+      }
+    </script>
+  </body>
+</html>

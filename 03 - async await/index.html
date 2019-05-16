@@ -1,0 +1,131 @@
+<html>
+  <head>
+    <title>Pure.js #6 - async</title>
+    <style>
+      button {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Pure.js #6. async/await</h1>
+
+    <h2>01. async vs promise</h2>
+    <div>
+      <button onclick="tryPromise()">Get promise number</button>
+      <button onclick="tryAsync()">Get async number</button>
+    </div>
+    <script>
+      function getAsyncRandom() {
+        return new Promise(resolve => resolve(Math.round(Math.random() * 100)));
+      }
+
+      async function getAsyncRandom2() {
+        return Math.round(Math.random() * 100);
+      }
+
+      async function timerAsync() {
+
+      }
+
+      function tryPromise() {
+        getAsyncRandom()
+          .then(result => console.log('promise result', result));
+      }
+
+      function tryAsync() {
+        getAsyncRandom2()
+          .then(result => console.log('async result', result));
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>02. reject async function</h2>
+    <div>
+      <button onclick="tryAsyncReject()">Try async reject</button>
+    </div>
+    <script>
+      async function asyncReject() {
+        throw new Error('some error');
+      }
+
+      function tryAsyncReject() {
+        asyncReject()
+          .catch(error => console.log('async error', error));
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>03. chains with async + promises</h2>
+    <div>
+      <button onclick="tryAsyncChains()">Try async in chains</button>
+    </div>
+    <script>
+      function pow(value) {
+        return new Promise(resolve => resolve(value ** 2));
+      }
+
+      async function subtract(value) {
+        return value - 2;
+      }
+
+      function tryAsyncChains() {
+        getAsyncRandom()
+          .then(pow)
+          .then(subtract)
+          .then(console.log);
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>04. await</h2>
+    <div>
+      <button onclick="tryAwaitWithPromise()">Try await + promise</button>
+      <button onclick="tryAwaitWithAsync()">Try await + async</button>
+    </div>
+    <script>
+      async function asyncReject() {
+        throw new Error('some error');
+      }
+
+      async function tryAwaitWithPromise() {
+        const value = await getAsyncRandom();
+        console.log('value', value);
+      }
+
+      async function tryAwaitWithAsync() {
+        const value = await getAsyncRandom2();
+        console.log('value', value);
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>05. await with errors</h2>
+    <div>
+      <button onclick="tryAwaitWithErrors()">Try await + errors</button>
+    </div>
+    <script>
+      async function rejectSometimes() {
+        const value = Math.round(Math.random() * 100);
+        if (value % 2) {
+          throw new Error('some error');
+        }
+
+        return value;
+      }
+
+      async function tryAwaitWithErrors() {
+        try {
+          const value = await rejectSometimes();
+          console.log('value', value);
+        } catch (error) {
+          console.log('error', error);
+        }
+      }
+    </script>
+  </body>
+</html>

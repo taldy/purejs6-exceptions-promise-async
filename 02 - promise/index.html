@@ -1,0 +1,401 @@
+<html>
+  <head>
+    <title>Pure.js #6 - async</title>
+    <style>
+      button {
+        display: block;
+      }
+
+      .loader {
+        display: none;
+        border: 3px solid #f3f3f3; /* Light grey */
+        border-top: 3px solid #a0a0a0;
+        border-bottom: 3px solid #a0a0a0;
+        border-left: 3px solid transparent;
+        border-right: 3px solid transparent;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 2s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Pure.js #6. Promise</h1>
+
+    <h2>01. promise</h2>
+    <div id="container1">
+      <button onclick="getAsyncNumber()">Get async number</button>
+      <button onclick="getAsyncNumber2()">Mmultiple then()</button>
+    </div>
+    <script>
+      function getAsyncNumber() {
+        getRandomNumber().then(number => {
+          console.log(`Random number ${number}`);
+        });
+      }
+
+      function getAsyncNumber2() {
+        const promise = getRandomNumber();
+
+        promise.then(number => {
+          console.log(`Random number ${number}`);
+        });
+        promise.then(number => {
+          console.log(`Second then() random number ${number}`);
+        });
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>02. catch</h2>
+    <div id="container2">
+      <button onclick="catch1()">.then(success, error)</button>
+      <button onclick="catch2()">.catch()</button>
+    </div>
+    <script>
+      function successCallback(result) {
+        console.log("Success callback:", result);
+      }
+
+      function rejectCallback(reason) {
+        console.log("Reject callback:", reason);
+      }
+
+      function catch1() {
+        getRandomStatusNumber().then(successCallback, rejectCallback);
+      }
+
+      function catch2() {
+        getRandomStatusNumber()
+          .then(successCallback)
+          .catch(rejectCallback);
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>03. reason because of Error</h2>
+    <div id="container3">
+      <textarea cols="50">{"username":"Vitaliy","age":26}</textarea>
+      <button onclick="asyncParseJson()">Async parse JSON</button>
+    </div>
+    <script>
+      function asyncParseJson() {
+        getParsedJson(document.querySelector("#container3 textarea").value)
+          .then(successCallback)
+          .catch(rejectCallback);
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>04. delayed .then</h2>
+    <div id="container4">
+      <button onclick="attachThen()">attach .then(fn, fn)</button>
+      <button onclick="resolvePromise(5)">Resolve promise</button>
+      <button onclick="rejectPromise(12)">Reject promise</button>
+    </div>
+    <script>
+      let resolvePromise;
+      let rejectPromise;
+
+      const promise = new Promise((resolve, reject) => {
+        resolvePromise = resolve;
+        rejectPromise = reject;
+      });
+
+      function attachThen() {
+        promise.then(successCallback, rejectCallback);
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>05. chains</h2>
+    <div id="container5"><button onclick="runChain()">Chain</button></div>
+    <script>
+      function getCurrentProject() {
+        return Promise.resolve({ id: 234 });
+      }
+
+      function getProjectTasks(projectId) {
+        console.log("getProjectTasks projectId", projectId);
+        return Promise.resolve([
+          { id: 13, title: "task1" },
+          { id: 17, title: "task2" }
+        ]);
+      }
+
+      function getTasksAttachments(tasks) {
+        console.log("getTasksAttachments tasks", tasks);
+        return Promise.resolve([
+          { id: 234, taskId: 13, name: "doc.pdf" },
+          { id: 51, taskId: 13, name: "order.pdf" },
+          { id: 455, taskId: 17, name: "avatar.png" }
+        ]);
+      }
+
+      function runChain() {
+        getCurrentProject()
+          .then(getProjectTasks)
+          .then(getTasksAttachments)
+          .then(attachments => console.log("result", attachments))
+          .catch(reason => console.log("reason", reason));
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>06. non promise function in .then()</h2>
+    <div id="container6"><button onclick="runChain2()">Chain</button></div>
+    <script>
+      function runChain2() {
+        getCurrentProject()
+          .then(getProjectTasks)
+          .then(getTasksAttachments)
+          .then(attachments =>
+            attachments.filter(item => item.name.indexOf(".pdf") > 0)
+          )
+          .then(attachments => console.log("result", attachments))
+          .catch(reason => console.log("reason", reason));
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>07. chain results</h2>
+    <div id="container7"><button onclick="runChain3()">Chain</button></div>
+    <script>
+      function runChain3() {
+        getCurrentProject()
+          .then(getProjectTasks)
+          .then(getTasksAttachments)
+          .then(attachments =>
+            attachments.filter(item => item.name.indexOf(".pdf") > 0)
+          )
+          .then(attachments => console.log("result", attachments))
+          .then(result => console.log("result2", result))
+          .catch(reason => console.log("reason", reason));
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>08. .catch() in chains</h2>
+    <div id="container8">
+      <button onclick="runChain4()">simple .catch()</button>
+      <button onclick="runChain5()">.catch() with recatch()</button>
+    </div>
+    <script>
+      function runChain4() {
+        console.log("------------");
+
+        getRandomStatusNumber()
+          .then(result => {
+            console.log("result1", result);
+            return result ** 2;
+          })
+          .then(result => {
+            console.log("result2", result);
+            return result / 2;
+          })
+          .catch(reason => console.log("reason1", reason))
+          .then(result => {
+            console.log("result3", result);
+            return result;
+          })
+          .catch(reason => console.log("reason2", reason));
+      }
+
+      function runChain5() {
+        console.log("------------");
+
+        getRandomStatusNumber()
+          .then(result => {
+            console.log("result1", result);
+            return result ** 2;
+          })
+          .then(result => {
+            console.log("result2", result);
+            return result / 2;
+          })
+          .catch(reason => {
+            console.log("reason1", reason);
+            return Promise.reject(reason);
+          })
+          .then(result => {
+            console.log("result3", result);
+            return result;
+          })
+          .catch(reason => console.log("reason2", reason));
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>08. .finally</h2>
+    <div id="container8">
+      <div class="loader"></div>
+      <button onclick="runFinally()">.finally()</button>
+    </div>
+    <script>
+      function showThrobber() {
+        document.querySelector(".loader").style.display = "block";
+      }
+
+      function hideThrobber() {
+        document.querySelector(".loader").style.display = "none";
+      }
+
+      function runFinally() {
+        console.log("------------");
+
+        showThrobber();
+
+        getRandomStatusNumber()
+          .then(successCallback)
+          .catch(rejectCallback)
+          .finally(hideThrobber);
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>09. Promise.all()</h2>
+    <div id="container9">
+      <button onclick="runPromiseAll()">Promise.all()</button>
+      <button onclick="runPromiseAllWithError()">Promise.all() with random error</button>
+      <button onclick="runPromiseAllBothErrors()">Promise.all() with both errors</button>
+    </div>
+    <script>
+      function runPromiseAll() {
+        const promises = [getRandomNumber(), getRandomNumber()];
+        Promise.all(promises)
+          .then(successCallback)
+          .catch(rejectCallback);
+      }
+
+      function runPromiseAllWithError() {
+        const promises = [getRandomNumber(), getRandomStatusNumber()];
+        Promise.all(promises)
+          .then(successCallback)
+          .catch(rejectCallback);
+      }
+
+      function runPromiseAllBothErrors() {
+
+        function getAsyncError(text) {
+          const delay = getRandomValue(3000);
+          console.log('getAsyncError', delay, text);
+
+          return new Promise((resolve, reject) =>
+            setTimeout(reject.bind(null, new Error(text)), delay))
+        }
+
+        const promises = [getAsyncError('first error'), getAsyncError('second error')];
+        Promise.all(promises)
+          .then(successCallback)
+          .catch(rejectCallback);
+      }
+    </script>
+
+    <pre>/////////////////////////////////////////////////////////////////////</pre>
+
+    <h2>10. Creating Promise</h2>
+    <div id="container10">
+      <button onclick="createPromise()">Create Promise</button>
+      <button onclick="createPromise2()">Create Promise with random status</button>
+      <button onclick="createResolvedPromise()">Create Resolved Promise</button>
+      <button onclick="createRejectedPromise()">Create Rejected Promise</button>
+    </div>
+    <script>
+      function timeoutPromise(value, timeout) {
+        return new Promise(resolve => {
+          setTimeout(resolve.bind(null, value), timeout);
+        });
+      }
+
+      function promisifiedRandom() {
+        return new Promise((resolve, reject) => {
+          const value = Math.round(Math.random() * 100);
+
+          if (value > 50) {
+            resolve(value);
+          } else {
+            reject(value);
+          }
+        });
+      }
+
+      function createPromise() {
+        timeoutPromise(getRandomValue(), 1250)
+          .then(successCallback);
+      }
+
+      function createPromise2() {
+        promisifiedRandom()
+          .then(successCallback)
+          .catch(rejectCallback);
+      }
+
+      function createResolvedPromise() {
+        Promise.resolve(444)
+          .then(successCallback)
+          .catch(rejectCallback);
+      }
+
+      function createRejectedPromise() {
+        Promise.reject(new Error('Oppps'))
+          .then(successCallback)
+          .catch(rejectCallback);
+      }
+    </script>
+
+    <script>
+      const TIMEOUT = 1000;
+
+      function getRandomStatusNumber() {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            const value = getRandomValue(100);
+
+            if (value % 2) {
+              resolve(value);
+            } else {
+              reject(`Oh no, value is ${value}`);
+            }
+          }, TIMEOUT);
+        });
+      }
+
+      function getRandomNumber() {
+        return new Promise(resolve => {
+          setTimeout(() => {
+            resolve(getRandomValue());
+          }, TIMEOUT);
+        });
+      }
+
+      function getParsedJson(json) {
+        return new Promise(resolve => {
+          resolve(JSON.parse(json));
+        });
+      }
+
+      function getRandomValue(max = 100) {
+        return Math.round(Math.random() * max);
+      }
+    </script>
+  </body>
+</html>
